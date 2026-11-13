@@ -18,19 +18,29 @@ async function verifyWebhook(req, res) {
 }
 
 async function receiveWebhook(req, res) {
-  // Validate X-Hub-Signature-256 using the raw body captured in app.js
   const signature = req.get("X-Hub-Signature-256");
 
   if (!verifyMetaSignature(req.rawBody, signature)) {
-    console.warn("Invalid webhook signature - request rejected");
+    console.warn("Invalid webhook signature - request rejected", {
+      hasSignatureHeader: Boolean(signature),
+      hasRawBody: Boolean(req.rawBody),
+      rawBodyLength: req.rawBody ? req.rawBody.length : 0,
+      userAgent: req.get("User-Agent")
+    });
     return res.sendStatus(401);
   }
 
-  // Respond immediately to Meta.
   res.sendStatus(200);
 
   try {
     const body = req.body;
+
+    const value = body.entry?.[0]?.changes?.[0]?.value;
+    console.log("Webhook received:", {
+      object: body.object,
+      messages: value?.messages?.length || 0,
+      statuses: value?.statuses?.length || 0
+    });
 
     if (body.object !== "whatsapp_business_account") {
       return;
