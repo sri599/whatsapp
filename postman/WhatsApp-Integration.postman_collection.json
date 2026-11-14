@@ -1,0 +1,127 @@
+{
+  "info": {
+    "_postman_id": "7f53d1e1-7c3a-4d32-9dfc-f5cfb87af0b0",
+    "name": "WhatsApp Integration API",
+    "description": "Tests the implemented health, Meta webhook verification, inbound webhook, and outbound text-send endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "verifyToken", "value": "replace-with-WHATSAPP_VERIFY_TOKEN" },
+    { "key": "metaAppSecret", "value": "replace-with-META_APP_SECRET" },
+    { "key": "to", "value": "15551234567" },
+    { "key": "text", "value": "Hello from Postman" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns healthy status', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().status).to.eql('healthy');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": { "method": "GET", "url": "{{baseUrl}}/health" },
+      "response": []
+    },
+    {
+      "name": "Verify Webhook",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns the challenge for a valid verify token', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.text()).to.eql('test_challenge_123');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/webhook/whatsapp?hub.mode=subscribe&hub.verify_token={{verifyToken}}&hub.challenge=test_challenge_123"
+      },
+      "response": []
+    },
+    {
+      "name": "Receive WhatsApp Webhook",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('webhookMessageId', 'wamid.postman-' + Date.now());",
+              "const secret = pm.collectionVariables.get('metaAppSecret');",
+              "const resolvedBody = pm.variables.replaceIn(pm.request.body.raw);",
+              "const signature = CryptoJS.enc.Hex.stringify(CryptoJS.HmacSHA256(resolvedBody, secret));",
+              "pm.request.headers.upsert({ key: 'X-Hub-Signature-256', value: 'sha256=' + signature });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Webhook signature is accepted', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-Hub-Signature-256", "value": "", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"test-business-account\",\n      \"changes\": [\n        {\n          \"field\": \"messages\",\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"15550000000\",\n              \"phone_number_id\": \"test-phone-number-id\"\n            },\n            \"contacts\": [\n              { \"profile\": { \"name\": \"Postman Test\" }, \"wa_id\": \"15550000001\" }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"15550000001\",\n                \"id\": \"{{webhookMessageId}}\",\n                \"timestamp\": \"1710000000\",\n                \"type\": \"text\",\n                \"text\": { \"body\": \"Webhook test from Postman\" }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/webhook/whatsapp"
+      },
+      "response": []
+    },
+    {
+      "name": "Send WhatsApp Text",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Request was accepted by the API', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"{{to}}\",\n  \"text\": \"{{text}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/whatsapp/send"
+      },
+      "response": []
+    }
+  ]
+}

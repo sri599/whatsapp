@@ -1,20 +1,21 @@
 const requiredEnv = [
   "MONGODB_URI",
-  "WHATSAPP_VERIFY_TOKEN",
-  "WHATSAPP_ACCESS_TOKEN",
-  "WHATSAPP_PHONE_NUMBER_ID",
-  "WHATSAPP_BUSINESS_ACCOUNT_ID",
-  "META_APP_ID",
-  "META_APP_SECRET",
-  "GRAPH_API_VERSION"
+  "APP_ENCRYPTION_KEY",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD"
 ];
 
 function validateEnvironment() {
   const missing = requiredEnv.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
-    console.error(`Missing environment variables: ${missing.join(", ")}`);
-    process.exit(1);
+    throw new Error(`Missing environment variables: ${missing.join(", ")}`);
+  }
+  if (process.env.APP_ENCRYPTION_KEY.length < 32) {
+    throw new Error("APP_ENCRYPTION_KEY must be at least 32 characters");
+  }
+  if (process.env.ADMIN_PASSWORD.length < 10) {
+    throw new Error("ADMIN_PASSWORD must be at least 10 characters");
   }
 }
 

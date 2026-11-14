@@ -1,4 +1,7 @@
 const express = require("express");
+const authRoutes = require("./routes/auth.routes");
+const inboxRoutes = require("./routes/inbox.routes");
+const settingsRoutes = require("./routes/settings.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
 
 const app = express();
@@ -12,6 +15,10 @@ app.use(
     }
   })
 );
+app.use((req, res, next) => {
+  req.body = req.body || {};
+  next();
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -30,9 +37,24 @@ app.get("/health", (req, res) => {
 });
 
 app.use(whatsappRoutes);
+app.use(authRoutes);
+app.use(inboxRoutes);
+app.use(settingsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  if (error.name === "MulterError") {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+  if (error.name === "CastError") {
+    return res.status(400).json({ success: false, message: "Invalid resource identifier" });
+  }
+  console.error("Request error:", error);
+  return res.status(500).json({ success: false, message: "Internal server error" });
 });
 
 module.exports = app;

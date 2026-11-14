@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const conversationSchema = new mongoose.Schema(
   {
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true
+    },
     contactId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Contact",

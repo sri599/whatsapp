@@ -14,6 +14,7 @@ const messageSchema = new mongoose.Schema(
     messageType: { type: String, required: true },
     messageText: { type: String, default: null },
     mediaId: { type: String, default: null },
+    mediaUrl: { type: String, default: null },
     status: {
       type: String,
       enum: ["received", "sent", "delivered", "read", "failed"],

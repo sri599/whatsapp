@@ -1,15 +1,15 @@
 const crypto = require("crypto");
 
-// Validates Meta's X-Hub-Signature-256 header against the RAW request body.
-function verifyMetaSignature(rawBody, signature) {
-  if (!signature || !rawBody) {
+// Validates Meta's X-Hub-Signature-256 header against the raw request body.
+function verifyMetaSignature(rawBody, signature, appSecret) {
+  if (!signature || !rawBody || !appSecret) {
     return false;
   }
 
   const expected =
     "sha256=" +
     crypto
-      .createHmac("sha256", process.env.META_APP_SECRET)
+      .createHmac("sha256", appSecret)
       .update(rawBody)
       .digest("hex");
 
