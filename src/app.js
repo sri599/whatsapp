@@ -5,26 +5,12 @@ const settingsRoutes = require("./routes/settings.routes");
 const whatsappRoutes = require("./routes/whatsapp.routes");
 
 const app = express();
-const allowedOrigins = new Set(
-  (process.env.CORS_ORIGINS || "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-);
 
 app.use((req, res, next) => {
-  const origin = req.get("Origin");
-  if (origin && allowedOrigins.has(origin)) {
-    res.set("Access-Control-Allow-Origin", origin);
-    res.set("Vary", "Origin");
-    res.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Authorization, Content-Type");
-  }
-
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Authorization, Content-Type");
   if (req.method === "OPTIONS") {
-    if (origin && !allowedOrigins.has(origin)) {
-      return res.status(403).json({ success: false, message: "Origin not allowed" });
-    }
     return res.sendStatus(204);
   }
   return next();

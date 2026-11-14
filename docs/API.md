@@ -44,13 +44,11 @@ Replace `<base-url>` with the deployed HTTPS origin (for example,
    an existing account's password.
 4. Sign in, then add WhatsApp Cloud API settings using the settings endpoint.
 
-For browser/Flutter Web clients, set `CORS_ORIGINS` to a comma-separated list
-of exact frontend origins, including scheme and port (for example,
-`http://localhost:5173,https://your-app.example.com`). Set the same variable in
-your hosting provider's environment settings and redeploy. Do not include
-paths or a trailing slash. The API allows bearer and JSON headers and does not
-enable cookie credentials. Requests without an `Origin` header (such as native
-Flutter mobile requests) are unaffected.
+The API allows cross-origin browser requests from any origin and handles
+preflight `OPTIONS` requests. It permits the `Authorization` and `Content-Type`
+headers and does not enable cookie credentials. Protected endpoints still
+require a bearer token. Do not use cookie-based authentication with this
+wildcard CORS policy.
 
 The encryption key protects access tokens, app secrets, and webhook verify
 tokens in MongoDB. Back it up securely and keep it stable: losing it makes
