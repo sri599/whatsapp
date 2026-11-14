@@ -82,7 +82,7 @@ async function migrateLegacyInbox(adminId) {
 }
 
 async function collectionExists(model) {
-  return model.collection.db
+  return model.db.db
     .listCollections({ name: model.collection.name }, { nameOnly: true })
     .hasNext();
 }
